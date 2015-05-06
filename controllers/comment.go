@@ -17,13 +17,16 @@ type CommentsCtrl struct {
 	darling.Controller
 }
 
+func (c *CommentsCtrl) Prepare() {
+	c.Access(c.Request)
+}
+
 func (c *CommentsCtrl) Post() {
-	accountId, err := c.Access(c.Request)
-	if err != nil {
+	content := "this is content"
+	if c.AccountId <= 0 {
 		c.Response.WriteHeader(http.StatusForbidden)
 	}
-	content := "this is content"
-	comment, err := models.AddComment(c.PathParams[0], accountId, content)
+	comment, err := models.AddComment(c.PathParams[0], c.AccountId, content)
 	if err != nil {
 		c.Response.WriteHeader(http.StatusInternalServerError)
 	}
@@ -33,6 +36,7 @@ func (c *CommentsCtrl) Post() {
 	io.WriteString(h, string(data))
 	buffer := bytes.NewBuffer(nil)
 	fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
+	c.Response.WriteHeader(http.StatusCreated)
 	c.Response.Header().Add("ETag", buffer.String())
 	io.WriteString(c.Response, string(data))
 }
@@ -50,6 +54,10 @@ func (c *CommentsCtrl) Get() {
 type CommentCtrl struct {
 	AccessController
 	darling.Controller
+}
+
+func (c *CommentCtrl) Prepare() {
+	c.Access(c.Request)
 }
 
 func (c *CommentCtrl) Get() {
@@ -70,13 +78,12 @@ func (c *CommentCtrl) Get() {
 
 }
 func (c *CommentCtrl) Delete() {
-	topicId := c.PathParams[0]
-	commentId, _ := strconv.ParseInt(c.PathParams[1], 10, 64)
-	accountId, err := c.Access(c.Request)
-	if err != nil {
+	if c.AccountId <= 0 {
 		c.Response.WriteHeader(http.StatusForbidden)
 	}
-	err = models.DeleteComment(topicId, commentId, accountId)
+	topicId := c.PathParams[0]
+	commentId, _ := strconv.ParseInt(c.PathParams[1], 10, 64)
+	err = models.DeleteComment(topicId, commentId, c.AccountId)
 	if err != nil {
 		c.Response.WriteHeader(http.StatusInternalServerError)
 	}
