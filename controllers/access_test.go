@@ -8,11 +8,12 @@ import (
 func TestAccess(t *testing.T) {
 	req, _ := http.NewRequest("GET", "", nil)
 	req.SetBasicAuth("liull", "111111")
-	accountId, err := new(AccessController).Access(req)
+	c := new(AccessController)
+	err := c.Access(req)
 	if err != nil {
 		t.Error(err)
 	}
-	if accountId == 0 {
+	if c.AccountId == 0 {
 		t.Error("account not found")
 	}
 }

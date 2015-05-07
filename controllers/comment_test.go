@@ -1,32 +1,33 @@
-package comment
+package controllers
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"testing"
 )
 
+type CommentInfo struct {
+	content string
+}
+
 func TestCommentsCtrlPost(t *testing.T) {
+	client := new(http.Client)
 	var topicId string = "1"
-	req := http.NewRequest("POST", fmt.Printf("/topics/%d/comments"), nil)
-	c := CommentsCtrl{Request: req, PathParams: []string{topicId}, AccountId: 1}
-	resp := c.Post()
-	switch resp.StatusCode {
-	case 500:
-		t.Error("server error")
-	case 201:
-		url, err := resp.Location()
-		if err != nil || url == nil {
-			t.Error("response's location error")
-		}
-		etag := resp.Header.Get("ETag")
-		if etag == nil {
-			t.Error("response header has no etag")
-		}
-		h := md5.New()
-		io.WriteString(h, string(resp.Body))
-		buffer := bytes.NewBuffer(nil)
-		fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
-		if etag != buffer.String() {
-			t.Error("response's etag is err")
-		}
+	path := fmt.Sprintf("/topics/%s/comments", topicId)
+	data, _ := json.Marshal(&CommentInfo{content: "test"})
+	resp, err := client.Post(path, "application/json", data)
+	if resp.StatusCode != 201 {
+		t.Error(err)
 	}
+}
+
+func TestCommentsCtrlGet(t *testing.T) {
+}
+
+func TestCommentCtrlGet(t *testing.T) {
+
+}
+func TestCommentCtrlDelete(t *testing.T) {
+
 }

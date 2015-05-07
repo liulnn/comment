@@ -13,8 +13,8 @@ import (
 )
 
 type CommentsCtrl struct {
-	AccessController
 	darling.Controller
+	AccessController
 }
 
 func (c *CommentsCtrl) Prepare() {
@@ -83,7 +83,7 @@ func (c *CommentCtrl) Delete() {
 	}
 	topicId := c.PathParams[0]
 	commentId, _ := strconv.ParseInt(c.PathParams[1], 10, 64)
-	err = models.DeleteComment(topicId, commentId, c.AccountId)
+	err := models.DeleteComment(topicId, commentId, c.AccountId)
 	if err != nil {
 		c.Response.WriteHeader(http.StatusInternalServerError)
 	}
