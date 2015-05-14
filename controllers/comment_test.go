@@ -13,7 +13,8 @@ import (
 func TestCommentsCtrlPost(t *testing.T) {
 	var topicId string = "1"
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/topics/%s/comments", topicId), nil)
-	resp := &darling.Response{Header: make(map[string]string)}
+	var rw http.ResponseWriter
+	resp := darling.NewResponse(rw)
 	c := &CommentsCtrl{darling.Controller{Request: req, Response: resp, PathParams: []string{topicId}}, AccessController{AccountId: 1}}
 	c.Post()
 	switch resp.StatusCode {
