@@ -1,32 +1,35 @@
-package comment
+package controllers
 
 import (
-    "testing"
+	"bytes"
+	"crypto/md5"
+	"darling"
+	"fmt"
+	"io"
+	"net/http"
+	"testing"
 )
 
 func TestCommentsCtrlPost(t *testing.T) {
-    var topicId string = "1"
-    req := http.NewRequest("POST", fmt.Printf("/topics/%d/comments"), nil)
-    c := CommentsCtrl{Request: req, PathParams: []string{topicId}, AccountId: 1}
-    resp := c.Post()
-    switch resp.StatusCode {
-    case 500:
-        t.Error("server error")
-    case 201:
-        url, err := resp.Location()
-        if err != nil || url == nil {
-            t.Error("response's location error")
-        }
-        etag := resp.Header.Get("ETag")
-        if etag == nil {
-            t.Error("response header has no etag")
-        }
-        h := md5.New()
-        io.WriteString(h, string(resp.Body))
-        buffer := bytes.NewBuffer(nil)
-        fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
-        if etag != buffer.String() {
-            t.Error("response's etag is err")
-        }
-    }
+	var topicId string = "1"
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/topics/%s/comments", topicId), nil)
+	resp := &darling.Response{Header: make(map[string]string)}
+	c := &CommentsCtrl{darling.Controller{Request: req, Response: resp, PathParams: []string{topicId}}, AccessController{AccountId: 1}}
+	c.Post()
+	switch resp.StatusCode {
+	case 500:
+		t.Error("server error")
+	case 201:
+		etag, _ := resp.Header["ETag"]
+		if etag == "" {
+			t.Error("response header has no etag")
+		}
+		h := md5.New()
+		io.WriteString(h, string(resp.Content))
+		buffer := bytes.NewBuffer(nil)
+		fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
+		if etag != buffer.String() {
+			t.Error("response's etag is err")
+		}
+	}
 }

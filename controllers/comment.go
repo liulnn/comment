@@ -24,31 +24,34 @@ func (c *CommentsCtrl) Prepare() {
 func (c *CommentsCtrl) Post() {
 	content := "this is content"
 	if c.AccountId <= 0 {
-		c.Response.WriteHeader(http.StatusForbidden)
+		c.Response.StatusCode = http.StatusForbidden
+		return
 	}
 	comment, err := models.AddComment(c.PathParams[0], c.AccountId, content)
 	if err != nil {
-		c.Response.WriteHeader(http.StatusInternalServerError)
+		c.Response.StatusCode = http.StatusInternalServerError
+		return
 	}
 	data, _ := json.Marshal(comment)
-	c.Response.Header().Add("Content-Type", "application/json; charset=utf-8")
 	h := md5.New()
 	io.WriteString(h, string(data))
 	buffer := bytes.NewBuffer(nil)
 	fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
-	c.Response.WriteHeader(http.StatusCreated)
-	c.Response.Header().Add("ETag", buffer.String())
-	io.WriteString(c.Response, string(data))
+	c.Response.StatusCode = http.StatusCreated
+	c.Response.Header["ETag"] = buffer.String()
+	c.Response.ContentType = "application/json; charset=utf-8"
+	c.Response.Content = data
 }
 
 func (c *CommentsCtrl) Get() {
 	comments, err := models.GetComments(c.PathParams[0], 10, 0)
 	if err != nil {
-		c.Response.WriteHeader(http.StatusInternalServerError)
+		c.Response.StatusCode = http.StatusInternalServerError
+		return
 	}
 	data, _ := json.Marshal(comments)
-	c.Response.Header().Add("Content-Type", "application/json; charset=utf-8")
-	io.WriteString(c.Response, string(data))
+	c.Response.ContentType = "application/json; charset=utf-8"
+	c.Response.Content = data
 }
 
 type CommentCtrl struct {
@@ -65,28 +68,29 @@ func (c *CommentCtrl) Get() {
 	commentId, _ := strconv.ParseInt(c.PathParams[1], 10, 64)
 	comment, err := models.GetComment(topicId, commentId)
 	if err != nil {
-		c.Response.WriteHeader(http.StatusInternalServerError)
+		c.Response.StatusCode = http.StatusInternalServerError
+		return
 	}
 	data, _ := json.Marshal(comment)
-	c.Response.Header().Add("Content-Type", "application/json; charset=utf-8")
 	h := md5.New()
 	io.WriteString(h, string(data))
 	buffer := bytes.NewBuffer(nil)
 	fmt.Fprintf(buffer, "%x\n", h.Sum(nil))
-	c.Response.Header().Add("ETag", buffer.String())
-	io.WriteString(c.Response, string(data))
-
+	c.Response.Header["ETag"] = buffer.String()
+	c.Response.ContentType = "application/json; charset=utf-8"
+	c.Response.Content = data
 }
 func (c *CommentCtrl) Delete() {
 	if c.AccountId <= 0 {
-		c.Response.WriteHeader(http.StatusForbidden)
+		c.Response.StatusCode = http.StatusForbidden
+		return
 	}
 	topicId := c.PathParams[0]
 	commentId, _ := strconv.ParseInt(c.PathParams[1], 10, 64)
 	err := models.DeleteComment(topicId, commentId, c.AccountId)
 	if err != nil {
-		c.Response.WriteHeader(http.StatusInternalServerError)
+		c.Response.StatusCode = http.StatusInternalServerError
+		return
 	}
-	c.Response.WriteHeader(http.StatusNoContent)
-
+	c.Response.StatusCode = http.StatusNoContent
 }
