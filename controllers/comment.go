@@ -3,6 +3,7 @@ package controllers
 import (
 	"comment/models"
 	"encoding/json"
+	"strconv"
 
 	"github.com/astaxie/beego"
 )
@@ -13,6 +14,11 @@ type CommentEntity struct {
 
 type CommentsController struct {
 	beego.Controller
+	TopicId string
+}
+
+func (c *CommentsController) Prepare() {
+	c.TopicId = c.Ctx.Input.Param(":topicId")
 }
 
 type CommentCreated struct {
@@ -22,7 +28,9 @@ type CommentCreated struct {
 func (c *CommentsController) Post() {
 	var ob CommentEntity
 	json.Unmarshal(c.Ctx.Input.RequestBody, &ob)
-	commentId := models.AddComment(ob)
+	source := "1"
+	username := "1"
+	commentId, _ := models.AddComment(c.TopicId, source, username, ob.Content)
 	c.Data["json"] = &CommentCreated{CommentId: commentId}
 	c.ServeJson()
 }
@@ -36,7 +44,8 @@ type CommentDetailList struct {
 }
 
 func (c *CommentsController) Get() {
-	comments := models.GetComments(20, 1)
+	pageSize, pageNum := 20, 1
+	comments, _ := models.GetComments(c.TopicId, pageSize, pageNum)
 	c.Data["json"] = &CommentDetailList{Comments: comments}
 	c.ServeJson()
 
@@ -44,15 +53,22 @@ func (c *CommentsController) Get() {
 
 type CommentController struct {
 	beego.Controller
+	TopicId   string
+	CommentId int64
+}
+
+func (c *CommentController) Prepare() {
+	c.TopicId = c.Ctx.Input.Param(":topicId")
+	c.CommentId, _ = strconv.ParseInt(c.Ctx.Input.Param(":commentId"), 10, 64)
 }
 
 func (c *CommentController) Get() {
-	comment := models.GetComment(1)
+	comment, _ := models.GetComment(c.TopicId, c.CommentId)
 	c.Data["json"] = &CommentDetail{Content: comment.Content}
 	c.ServeJson()
 
 }
 
 func (c *CommentController) Delete() {
-	err := models.DeleteComment(1)
+	models.DeleteComment(c.TopicId, c.CommentId)
 }
