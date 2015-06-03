@@ -1,13 +1,15 @@
 package main
 
 import (
-	"comment/controllers"
-	"darling"
+	_ "comment/routers"
+
+	"github.com/astaxie/beego"
 )
 
 func main() {
-	app := darling.NewApp()
-	app.Handlers.Add("/comments", &controllers.CommentsCtrl{})
-	app.Handlers.Add("/comments/(\\w+)", &controllers.CommentCtrl{})
-	app.Run("127.0.0.1", 8001)
+	if beego.RunMode == "dev" {
+		beego.DirectoryIndex = true
+		beego.StaticDir["/swagger"] = "swagger"
+	}
+	beego.Run()
 }
