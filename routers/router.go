@@ -14,6 +14,6 @@ import (
 )
 
 func init() {
-	beego.Router("/topic/:topicId([\\w]+)/comments", &controllers.CommentController{})
+	beego.Router("/topic/:topicId([\\w]+)/comments", &controllers.CommentsController{})
 	beego.Router("/topic/:topicId([\\w]+)/comments/:commentId([0-9]+)", &controllers.CommentController{})
 }

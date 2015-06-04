@@ -32,15 +32,13 @@ func (c *CommentsController) Post() {
 	username := "1"
 	commentId, _ := models.AddComment(c.TopicId, source, username, ob.Content)
 	c.Ctx.Output.SetStatus(201)
-	c.Data["json"] = &CommentCreated{CommentId: commentId}
-	c.ServeJson()
+	c.Ctx.Output.Json(&CommentCreated{CommentId: commentId})
 }
 
 func (c *CommentsController) Get() {
 	pageSize, pageNum := 20, 1
 	comments, _ := models.GetComments(c.TopicId, pageSize, pageNum)
-	c.Data["json"] = comments
-	c.ServeJson()
+	c.Ctx.Output.Json(comments)
 }
 
 type CommentController struct {
