@@ -35,18 +35,10 @@ func (c *CommentsController) Post() {
 	c.ServeJson()
 }
 
-type CommentDetail struct {
-	Content string
-}
-
-type CommentDetailList struct {
-	Comments CommentDetail `json:"comments"`
-}
-
 func (c *CommentsController) Get() {
 	pageSize, pageNum := 20, 1
 	comments, _ := models.GetComments(c.TopicId, pageSize, pageNum)
-	c.Data["json"] = &CommentDetailList{Comments: comments}
+	c.Data["json"] = comments
 	c.ServeJson()
 
 }
@@ -64,7 +56,7 @@ func (c *CommentController) Prepare() {
 
 func (c *CommentController) Get() {
 	comment, _ := models.GetComment(c.TopicId, c.CommentId)
-	c.Data["json"] = &CommentDetail{Content: comment.Content}
+	c.Data["json"] = comment
 	c.ServeJson()
 
 }

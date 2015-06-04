@@ -10,15 +10,16 @@ func init() {
 	orm.RegisterDriver("postgres", orm.DR_Postgres)
 	orm.RegisterDataBase("default", "postgres", "user=postgres password=123456 dbname=comment sslmode=disable")
 	orm.RegisterModel(new(Comment))
+	orm.RunSyncdb("default", false, true)
 }
 
 type Comment struct {
-	Id        int64
-	Topic     string
-	Source    string
-	Username  string
-	Content   string
-	CreatedAt time.Time
+	Id        int64     `orm:"auto;pk"`
+	Topic     string    `orm:"size(32);index"`
+	Source    string    `orm:"size(10)"`
+	Username  string    `orm:"size(32)"`
+	Content   string    `orm:"size(140)"`
+	CreatedAt time.Time `orm:"auto_now_add;type(datetime);index"`
 }
 
 func (c *Comment) TableName() string {
