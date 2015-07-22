@@ -13,6 +13,26 @@ func init() {
 	orm.RunSyncdb("default", false, true)
 }
 
+type App struct {
+	Id          int64  `orm:"auto;pk"`
+	Secret      string `orm:"size(16);index;"`
+	Name        string `orm:"size(128)"`
+	PackageName string `orm:"size(64)";unique`
+}
+
+func (a *App) TableName() string {
+	return "app"
+}
+
+func AddApp(name, packageName string) (id int64, err error) {
+	o := orm.NewOrm()
+	return o.Insert(&App{
+		Secret:      "random string",
+		Name:        name,
+		PackageName: packageName,
+	})
+}
+
 type Comment struct {
 	Id        int64     `orm:"auto;pk"`
 	Topic     string    `orm:"size(32);index"`
