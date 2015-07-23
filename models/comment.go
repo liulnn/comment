@@ -1,6 +1,7 @@
 package models
 
 import (
+	"crypto/rand"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/lib/pq"
 	"time"
@@ -24,13 +25,35 @@ func (a *App) TableName() string {
 	return "app"
 }
 
+func randString(n int) string {
+	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	var bytes = make([]byte, n)
+	rand.Read(bytes)
+	for i, b := range bytes {
+		bytes[i] = alphanum[b%byte(len(alphanum))]
+	}
+	return string(bytes)
+}
+
 func AddApp(name, packageName string) (id int64, err error) {
 	o := orm.NewOrm()
 	return o.Insert(&App{
-		Secret:      "random string",
+		Secret:      randString(16),
 		Name:        name,
 		PackageName: packageName,
 	})
+}
+
+func ValidateApp(id int64, secret string) bool {
+	o := orm.NewOrm()
+	app = &App{Id: id}
+	err = o.Read(app)
+	if err == nil {
+		if app.Secret == secret {
+			return true
+		}
+	}
+	return false
 }
 
 type Comment struct {
